@@ -148,4 +148,28 @@ export const expenseRepository = {
       .groupBy(sql`month`, expenses.type)
       .orderBy(sql`month`);
   },
+
+  async getDailyExpenses(
+    userId: string,
+    dateFrom: Date,
+    dateTo: Date
+  ): Promise<{ date: string; total: number }[]> {
+    const result = await db
+      .select({
+        date: sql<string>`to_char(${expenses.date}, 'YYYY-MM-DD')`,
+        total: sql<string>`COALESCE(SUM(${expenses.amount}::numeric), 0)`,
+      })
+      .from(expenses)
+      .where(
+        and(
+          eq(expenses.userId, userId),
+          eq(expenses.type, "expense"),
+          gte(expenses.date, dateFrom),
+          lte(expenses.date, dateTo)
+        )
+      )
+      .groupBy(sql`to_char(${expenses.date}, 'YYYY-MM-DD')`)
+      .orderBy(sql`to_char(${expenses.date}, 'YYYY-MM-DD')`);
+    return result.map((r) => ({ date: r.date, total: Number(r.total) || 0 }));
+  },
 };

@@ -7,9 +7,9 @@ import { usePathname } from "next/navigation";
 
 const navigation = [
   { name: "Inicio", href: "/dashboard", icon: Home },
-  { name: "Gastos", href: "/expenses", icon: CreditCard },
-  { name: "Categorías", href: "/categories", icon: Tag },
-  { name: "Informes", href: "/reports", icon: BarChart2 },
+  { name: "Gastos", href: "/gastos", icon: CreditCard },
+  { name: "Categorías", href: "/categorias", icon: Tag },
+  { name: "Informes", href: "/informes", icon: BarChart2 },
 ];
 
 export default function MobileNav() {

@@ -19,12 +19,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           .where(eq(users.email, user.email));
 
         if (!existingUser) {
-          // Create user if not exists
-          await db.insert(users).values({
-            name: user.name || "User",
-            email: user.email,
-            image: user.image,
-          });
+          const [newUser] = await db
+            .insert(users)
+            .values({
+              name: user.name || "User",
+              email: user.email,
+              image: user.image,
+            })
+            .returning();
+
+          const { seedDefaultCategoriesAction } = await import(
+            "./actions/seed"
+          );
+          await seedDefaultCategoriesAction(newUser.id);
         }
 
         return true;
