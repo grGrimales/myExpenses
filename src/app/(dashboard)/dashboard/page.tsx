@@ -67,12 +67,12 @@ export default async function DashboardPage({
 
       {/* Row 2: Charts */}
       <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
+        <div className="min-w-0 lg:col-span-2">
           <Suspense fallback={<SectionSkeleton />}>
             <MonthlyChart months={6} />
           </Suspense>
         </div>
-        <div className="lg:col-span-1">
+        <div className="min-w-0 lg:col-span-1">
           <Suspense fallback={<SectionSkeleton />}>
             <CategoryPieChart dateFrom={dateFrom} dateTo={dateTo} />
           </Suspense>

@@ -72,7 +72,7 @@ export default async function InformesPage({
         </Suspense>
 
         {/* Right: Charts & breakdown */}
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-6">
           <Suspense fallback={<SectionSkeleton height="h-64" />}>
             <CategoryBreakdown
               data={categoryData}
