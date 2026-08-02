@@ -55,9 +55,9 @@ export default function CategoryPieChartDisplay({
           ]}
           contentStyle={{
             borderRadius: "8px",
-            border: "1px solid hsl(var(--border))",
-            background: "hsl(var(--card))",
-            color: "hsl(var(--card-foreground))",
+            border: "1px solid var(--border)",
+            background: "var(--card)",
+            color: "var(--card-foreground)",
           }}
         />
         <Legend

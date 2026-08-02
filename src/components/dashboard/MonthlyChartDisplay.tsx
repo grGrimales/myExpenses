@@ -50,7 +50,7 @@ export default function MonthlyChartDisplay({ data }: MonthlyChartDisplayProps) 
             <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
         <XAxis
           dataKey="mes"
           tick={{ fontSize: 12 }}
@@ -76,9 +76,9 @@ export default function MonthlyChartDisplay({ data }: MonthlyChartDisplayProps) 
           ]}
           contentStyle={{
             borderRadius: "8px",
-            border: "1px solid hsl(var(--border))",
-            background: "hsl(var(--card))",
-            color: "hsl(var(--card-foreground))",
+            border: "1px solid var(--border)",
+            background: "var(--card)",
+            color: "var(--card-foreground)",
           }}
         />
         <Legend iconType="circle" iconSize={8} />

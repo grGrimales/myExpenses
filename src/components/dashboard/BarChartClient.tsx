@@ -83,7 +83,7 @@ export default function BarChartClient({ dailyData }: BarChartClientProps) {
 
       <ResponsiveContainer width="100%" height={280}>
         <BarChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
           <XAxis
             dataKey="label"
             tick={{ fontSize: 12 }}
@@ -109,9 +109,9 @@ export default function BarChartClient({ dailyData }: BarChartClientProps) {
             ]}
             contentStyle={{
               borderRadius: "8px",
-              border: "1px solid hsl(var(--border))",
-              background: "hsl(var(--card))",
-              color: "hsl(var(--card-foreground))",
+              border: "1px solid var(--border)",
+              background: "var(--card)",
+              color: "var(--card-foreground)",
             }}
           />
           <Bar dataKey="Gastos" fill="#ef4444" radius={[4, 4, 0, 0]} />

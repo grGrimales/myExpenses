@@ -43,16 +43,16 @@ export default function CategoryBarChartDisplay({
           axisLine={false}
         />
         <Tooltip
-          cursor={{ fill: "hsl(var(--muted))" }}
+          cursor={{ fill: "var(--muted)" }}
           formatter={(value) => [
             typeof value === "number" ? formatCurrency(value) : String(value),
             "Total",
           ]}
           contentStyle={{
             borderRadius: "8px",
-            border: "1px solid hsl(var(--border))",
-            background: "hsl(var(--card))",
-            color: "hsl(var(--card-foreground))",
+            border: "1px solid var(--border)",
+            background: "var(--card)",
+            color: "var(--card-foreground)",
           }}
         />
         <Bar dataKey="total" radius={[0, 4, 4, 0]} barSize={16}>
