@@ -2,6 +2,7 @@ import { getCategoriesAction } from "@/actions/categories";
 import { getExpensesAction } from "@/actions/expenses";
 import GastosClient from "@/components/expenses/GastosClient";
 import { type ExpenseFilters, type ExpenseType } from "@/types/expense";
+import { parseISO } from "date-fns";
 import { type Metadata } from "next";
 import { Suspense } from "react";
 
@@ -25,8 +26,8 @@ export default async function GastosPage({
     type: (params.type as ExpenseType) || undefined,
     categoryId: (params.categoryId as string) || undefined,
     search: (params.search as string) || undefined,
-    dateFrom: params.dateFrom ? new Date(params.dateFrom as string) : undefined,
-    dateTo: params.dateTo ? new Date(params.dateTo as string) : undefined,
+    dateFrom: params.dateFrom ? parseISO(params.dateFrom as string) : undefined,
+    dateTo: params.dateTo ? parseISO(params.dateTo as string) : undefined,
   };
 
   const [expensesResult, categoriesResult] = await Promise.all([

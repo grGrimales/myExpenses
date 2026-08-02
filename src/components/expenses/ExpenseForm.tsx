@@ -1,18 +1,12 @@
 "use client";
 
 import { createExpenseAction, updateExpenseAction } from "@/actions/expenses";
+import CategoryCombobox from "@/components/categories/CategoryCombobox";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { type Category } from "@/db/schema/categories";
 import { type Expense } from "@/db/schema/expenses";
 import { cn } from "@/lib/utils";
@@ -151,24 +145,12 @@ export default function ExpenseForm({
           control={control}
           name="categoryId"
           render={({ field }) => (
-            <Select
-              value={field.value ?? "none"}
-              onValueChange={(val) =>
-                field.onChange(val === "none" ? undefined : val)
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Sin categoría" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Sin categoría</SelectItem>
-                {categories.map((cat) => (
-                  <SelectItem key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <CategoryCombobox
+              categories={categories}
+              value={field.value}
+              onChange={field.onChange}
+              clearLabel="Sin categoría"
+            />
           )}
         />
       </div>

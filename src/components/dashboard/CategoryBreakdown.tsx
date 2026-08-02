@@ -1,7 +1,11 @@
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { type Category } from "@/db/schema/categories";
+import { CATEGORY_ICONS } from "@/lib/category-icons";
+import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/utils/format";
 import { type CategoryExpense } from "@/types/expense";
+import { Crown, Tag } from "lucide-react";
 
 interface CategoryBreakdownProps {
   data: CategoryExpense[];
@@ -30,24 +34,48 @@ export default function CategoryBreakdown({
           </p>
         ) : (
           <div className="space-y-4">
-            {sorted.map((item) => {
+            {sorted.map((item, index) => {
               const category = categories.find((c) => c.id === item.categoryId);
               const color = category?.color ?? "#94a3b8";
+              const Icon = category ? CATEGORY_ICONS[category.icon] ?? Tag : Tag;
               const pct = total > 0 ? (item.total / total) * 100 : 0;
+              const isTop = index === 0;
               return (
-                <div key={item.categoryId ?? "sin-cat"} className="space-y-1.5">
+                <div
+                  key={item.categoryId ?? "sin-cat"}
+                  className={cn(
+                    "space-y-1.5 rounded-lg",
+                    isTop && "border bg-muted/40 p-2.5"
+                  )}
+                  style={isTop ? { borderColor: color + "40" } : undefined}
+                >
                   <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2 min-w-0">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <span className="w-4 flex-shrink-0 text-xs font-semibold text-muted-foreground">
+                        {index + 1}
+                      </span>
                       <div
-                        className="h-2.5 w-2.5 flex-shrink-0 rounded-full"
-                        style={{ backgroundColor: color }}
-                      />
+                        className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full"
+                        style={{ backgroundColor: color + "20", color }}
+                      >
+                        <Icon className="h-3.5 w-3.5" />
+                      </div>
                       <span className="truncate font-medium">
                         {item.categoryName ?? "Sin categoría"}
                       </span>
                       <span className="text-xs text-muted-foreground">
                         ({item.count})
                       </span>
+                      {isTop && (
+                        <Badge
+                          variant="outline"
+                          className="ml-1 flex-shrink-0 gap-1 border-none bg-background px-1.5 py-0 text-[10px] font-medium"
+                          style={{ color }}
+                        >
+                          <Crown className="h-3 w-3" />
+                          Mayor gasto
+                        </Badge>
+                      )}
                     </div>
                     <div className="ml-2 flex items-center gap-2 whitespace-nowrap">
                       <span className="text-xs text-muted-foreground">

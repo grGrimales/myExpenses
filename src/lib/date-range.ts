@@ -1,6 +1,8 @@
 import {
+  endOfDay,
   endOfMonth,
   endOfYear,
+  parseISO,
   startOfMonth,
   startOfYear,
   subMonths,
@@ -43,8 +45,8 @@ export function getDateRangeForPreset(
       return { dateFrom: startOfYear(now), dateTo: endOfYear(now) };
     case "custom":
       return {
-        dateFrom: customFrom ? new Date(customFrom) : startOfMonth(now),
-        dateTo: customTo ? new Date(customTo) : endOfMonth(now),
+        dateFrom: customFrom ? parseISO(customFrom) : startOfMonth(now),
+        dateTo: customTo ? endOfDay(parseISO(customTo)) : endOfMonth(now),
       };
     default:
       return { dateFrom: startOfMonth(now), dateTo: endOfMonth(now) };

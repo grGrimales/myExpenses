@@ -3,6 +3,7 @@ import { expenses, type NewExpense, type Expense } from "../schema/expenses";
 import { categories } from "../schema/categories";
 import { eq, and, gte, lte, ilike, desc, sql, sum, count } from "drizzle-orm";
 import { type ExpenseFilters, type PaginationParams } from "@/types/expense";
+import { endOfDay } from "date-fns";
 
 export const expenseRepository = {
   async findExpensesByUserId(
@@ -10,8 +11,6 @@ export const expenseRepository = {
     filters?: ExpenseFilters,
     pagination?: PaginationParams
   ): Promise<Expense[]> {
-    let query = db.select().from(expenses).where(eq(expenses.userId, userId)).$dynamic();
-
     const conditions = [eq(expenses.userId, userId)];
 
     if (filters?.categoryId) {
@@ -24,13 +23,13 @@ export const expenseRepository = {
       conditions.push(gte(expenses.date, filters.dateFrom));
     }
     if (filters?.dateTo) {
-      conditions.push(lte(expenses.date, filters.dateTo));
+      conditions.push(lte(expenses.date, endOfDay(filters.dateTo)));
     }
     if (filters?.search) {
       conditions.push(ilike(expenses.description, `%${filters.search}%`));
     }
 
-    let finalQuery = db
+    const finalQuery = db
       .select()
       .from(expenses)
       .where(and(...conditions))

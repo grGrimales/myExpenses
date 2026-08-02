@@ -1,6 +1,7 @@
 "use client";
 
 import { type ExpenseFilters, type ExpenseType } from "@/types/expense";
+import { format, parseISO } from "date-fns";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useRef } from "react";
 
@@ -21,8 +22,8 @@ export function useExpenseFilters() {
       type: type ?? undefined,
       categoryId: categoryId ?? undefined,
       search: search ?? undefined,
-      dateFrom: dateFromStr ? new Date(dateFromStr) : undefined,
-      dateTo: dateToStr ? new Date(dateToStr) : undefined,
+      dateFrom: dateFromStr ? parseISO(dateFromStr) : undefined,
+      dateTo: dateToStr ? parseISO(dateToStr) : undefined,
     };
   }, [searchParams]);
 
@@ -31,7 +32,7 @@ export function useExpenseFilters() {
     if (value === undefined || value === null || value === "") {
       params.delete(key);
     } else if (value instanceof Date) {
-      params.set(key, value.toISOString().split("T")[0]);
+      params.set(key, format(value, "yyyy-MM-dd"));
     } else {
       params.set(key, String(value));
     }
