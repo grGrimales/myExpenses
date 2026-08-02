@@ -127,13 +127,14 @@ export const expenseRepository = {
         )
       )
       .groupBy(expenses.categoryId, categories.name)
-      .orderBy(desc(sql`total`));
+      .orderBy(desc(sum(expenses.amount)));
   },
 
   async getMonthlyTrend(userId: string, months: number = 6) {
+    const monthExpr = sql<string>`to_char(${expenses.date}, 'YYYY-MM')`;
     return db
       .select({
-        month: sql<string>`to_char(${expenses.date}, 'YYYY-MM')`,
+        month: monthExpr,
         type: expenses.type,
         total: sum(expenses.amount),
       })
@@ -144,8 +145,8 @@ export const expenseRepository = {
           gte(expenses.date, sql`now() - interval '${sql.raw(months.toString())} months'`)
         )
       )
-      .groupBy(sql`month`, expenses.type)
-      .orderBy(sql`month`);
+      .groupBy(monthExpr, expenses.type)
+      .orderBy(monthExpr);
   },
 
   async getDailyExpenses(

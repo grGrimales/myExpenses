@@ -183,6 +183,7 @@ export async function getExpensesByCategoryAction(
     }));
     return { success: true, data };
   } catch (error) {
+    console.error("Error al obtener gastos por categoría:", error);
     return {
       success: false,
       error:
