@@ -1,7 +1,10 @@
 import {
+  differenceInCalendarMonths,
   endOfDay,
   endOfMonth,
   endOfYear,
+  isFirstDayOfMonth,
+  isLastDayOfMonth,
   parseISO,
   startOfMonth,
   startOfYear,
@@ -57,6 +60,19 @@ export function getPreviousPeriod(
   dateFrom: Date,
   dateTo: Date
 ): { prevFrom: Date; prevTo: Date } {
+  // Si el rango cubre meses calendario completos, hay que desplazarlo por meses,
+  // no por duración: los meses no duran lo mismo, y una ventana de igual longitud
+  // se desborda sobre el mes anterior. Comparar julio (31 días) contra los
+  // "31 días previos" arrastra el 31 de mayo dentro del total de junio.
+  if (isFirstDayOfMonth(dateFrom) && isLastDayOfMonth(dateTo)) {
+    const months = differenceInCalendarMonths(dateTo, dateFrom) + 1;
+    return {
+      prevFrom: startOfMonth(subMonths(dateFrom, months)),
+      prevTo: endOfMonth(subMonths(dateTo, months)),
+    };
+  }
+
+  // Rango arbitrario (preset "custom"): ventana contigua de la misma duración.
   const duration = dateTo.getTime() - dateFrom.getTime();
   return {
     prevFrom: new Date(dateFrom.getTime() - duration - 1),
