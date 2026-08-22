@@ -142,7 +142,13 @@ export const expenseRepository = {
       .where(
         and(
           eq(expenses.userId, userId),
-          gte(expenses.date, sql`now() - interval '${sql.raw(months.toString())} months'`)
+          // Alineado al inicio del mes: `now() - interval 'N months'` abre la
+          // ventana a mitad de mes y deja la barra más antigua truncada.
+          // make_interval() además parametriza el valor, en vez de interpolarlo.
+          gte(
+            expenses.date,
+            sql`date_trunc('month', now()) - make_interval(months => ${months - 1})`
+          )
         )
       )
       .groupBy(monthExpr, expenses.type)
