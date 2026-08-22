@@ -39,7 +39,9 @@ export default function CategoryCombobox({
   const SelectedIcon = selected ? CATEGORY_ICONS[selected.icon] ?? Tag : null;
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    // `modal` es obligatorio: dentro de un Dialog modal, react-remove-scroll
+    // cancela el touchmove del contenido portalado y mata el scroll táctil.
+    <Popover open={open} onOpenChange={setOpen} modal>
       <PopoverTrigger asChild>
         <Button
           type="button"
@@ -66,10 +68,10 @@ export default function CategoryCombobox({
           <ChevronsUpDown className="ml-2 h-4 w-4 flex-shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+      <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
         <Command>
           <CommandInput placeholder="Buscar categoría..." />
-          <CommandList>
+          <CommandList className="touch-pan-y overscroll-contain">
             <CommandEmpty>No se encontraron categorías.</CommandEmpty>
             <CommandGroup>
               {allowClear && (
