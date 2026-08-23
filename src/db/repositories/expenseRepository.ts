@@ -1,7 +1,18 @@
 import { db } from "..";
 import { expenses, type NewExpense, type Expense } from "../schema/expenses";
 import { categories } from "../schema/categories";
-import { eq, and, gte, lte, ilike, desc, sql, sum, count } from "drizzle-orm";
+import {
+  eq,
+  and,
+  gte,
+  lte,
+  ilike,
+  isNull,
+  desc,
+  sql,
+  sum,
+  count,
+} from "drizzle-orm";
 import { type ExpenseFilters, type PaginationParams } from "@/types/expense";
 import { endOfDay } from "date-fns";
 
@@ -128,6 +139,37 @@ export const expenseRepository = {
       )
       .groupBy(expenses.categoryId, categories.name)
       .orderBy(desc(sum(expenses.amount)));
+  },
+
+  /**
+   * Gastos individuales de UNA categoría dentro del rango, para el desglose
+   * expandible de Informes. `categoryId: null` recupera los gastos sin
+   * categoría, que el agregado agrupa bajo la fila "Sin categoría".
+   *
+   * Ordena por monto descendente: al excluir gastos del total, lo primero que
+   * se busca son los importes grandes.
+   */
+  async findExpensesByCategoryInRange(
+    userId: string,
+    categoryId: string | null,
+    dateFrom: Date,
+    dateTo: Date
+  ): Promise<Expense[]> {
+    return db
+      .select()
+      .from(expenses)
+      .where(
+        and(
+          eq(expenses.userId, userId),
+          eq(expenses.type, "expense"),
+          categoryId === null
+            ? isNull(expenses.categoryId)
+            : eq(expenses.categoryId, categoryId),
+          gte(expenses.date, dateFrom),
+          lte(expenses.date, dateTo)
+        )
+      )
+      .orderBy(desc(expenses.amount));
   },
 
   async getMonthlyTrend(userId: string, months: number = 6) {

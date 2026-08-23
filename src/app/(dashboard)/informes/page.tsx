@@ -75,9 +75,15 @@ export default async function InformesPage({
         <div className="min-w-0 space-y-6">
           <Suspense fallback={<SectionSkeleton height="h-64" />}>
             <CategoryBreakdown
+              // Al cambiar el período, la selección de categorías y los gastos
+              // ya cargados dejan de tener sentido. Remontar por rango los
+              // descarta sin necesidad de sincronizarlos con un efecto.
+              key={`${dateFrom.toISOString()}-${dateTo.toISOString()}`}
               data={categoryData}
               categories={categories}
               total={totalExpense}
+              dateFrom={dateFrom}
+              dateTo={dateTo}
             />
           </Suspense>
 

@@ -192,6 +192,33 @@ export async function getExpensesByCategoryAction(
   }
 }
 
+export async function getCategoryExpensesAction(
+  categoryId: string | null,
+  dateFrom: Date,
+  dateTo: Date
+): Promise<ActionResult<Expense[]>> {
+  const session = await auth();
+  if (!session?.user?.id) return { success: false, error: "No autenticado" };
+
+  try {
+    const data = await expenseRepository.findExpensesByCategoryInRange(
+      session.user.id,
+      categoryId,
+      dateFrom,
+      dateTo
+    );
+    return { success: true, data };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Error al obtener gastos de la categoría",
+    };
+  }
+}
+
 export async function getDailyExpensesAction(
   dateFrom: Date,
   dateTo: Date
