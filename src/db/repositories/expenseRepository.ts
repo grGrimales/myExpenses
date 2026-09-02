@@ -13,7 +13,11 @@ import {
   sum,
   count,
 } from "drizzle-orm";
-import { type ExpenseFilters, type PaginationParams } from "@/types/expense";
+import {
+  type DailyCategoryExpense,
+  type ExpenseFilters,
+  type PaginationParams,
+} from "@/types/expense";
 import { endOfDay } from "date-fns";
 
 export const expenseRepository = {
@@ -197,17 +201,29 @@ export const expenseRepository = {
       .orderBy(monthExpr);
   },
 
-  async getDailyExpenses(
+  /**
+   * Gasto por día abierto por categoría: el gráfico de Evolución lo apila y
+   * el mapa de calor colorea cada día por su categoría dominante. El join es
+   * left, así que un gasto sin categoría sigue contando en el total del día
+   * y se agrupa aparte.
+   */
+  async getDailyExpensesByCategory(
     userId: string,
     dateFrom: Date,
     dateTo: Date
-  ): Promise<{ date: string; total: number }[]> {
+  ): Promise<DailyCategoryExpense[]> {
+    const day = sql<string>`to_char(${expenses.date}, 'YYYY-MM-DD')`;
+
     const result = await db
       .select({
-        date: sql<string>`to_char(${expenses.date}, 'YYYY-MM-DD')`,
+        date: day,
+        categoryId: expenses.categoryId,
+        categoryName: categories.name,
+        categoryColor: categories.color,
         total: sql<string>`COALESCE(SUM(${expenses.amount}::numeric), 0)`,
       })
       .from(expenses)
+      .leftJoin(categories, eq(expenses.categoryId, categories.id))
       .where(
         and(
           eq(expenses.userId, userId),
@@ -216,8 +232,15 @@ export const expenseRepository = {
           lte(expenses.date, dateTo)
         )
       )
-      .groupBy(sql`to_char(${expenses.date}, 'YYYY-MM-DD')`)
-      .orderBy(sql`to_char(${expenses.date}, 'YYYY-MM-DD')`);
-    return result.map((r) => ({ date: r.date, total: Number(r.total) || 0 }));
+      .groupBy(day, expenses.categoryId, categories.name, categories.color)
+      .orderBy(day);
+
+    return result.map((r) => ({
+      date: r.date,
+      categoryId: r.categoryId,
+      categoryName: r.categoryName ?? "Sin categoría",
+      categoryColor: r.categoryColor ?? "#94a3b8",
+      total: Number(r.total) || 0,
+    }));
   },
 };

@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 
 import { getCategoriesAction } from "@/actions/categories";
 import {
-  getDailyExpensesAction,
+  getDailyExpensesByCategoryAction,
   getExpensesByCategoryAction,
   getExpenseSummaryAction,
 } from "@/actions/expenses";
@@ -42,13 +42,13 @@ export default async function InformesPage({
     await Promise.all([
       getExpensesByCategoryAction(dateFrom, dateTo),
       getCategoriesAction(),
-      getDailyExpensesAction(dateFrom, dateTo),
+      getDailyExpensesByCategoryAction(dateFrom, dateTo),
       getExpenseSummaryAction(dateFrom, dateTo),
     ]);
 
   const categoryData = catResult.success ? catResult.data : [];
   const categories = categoriesResult.success ? categoriesResult.data : [];
-  const dailyData = dailyResult.success ? dailyResult.data : [];
+  const dailyByCategory = dailyResult.success ? dailyResult.data : [];
   const totalExpense = summaryResult.success ? summaryResult.data.expense : 0;
 
   return (
@@ -88,12 +88,12 @@ export default async function InformesPage({
           </Suspense>
 
           <Suspense fallback={<SectionSkeleton />}>
-            <BarChart dailyData={dailyData} />
+            <BarChart rows={dailyByCategory} />
           </Suspense>
 
           <Suspense fallback={<SectionSkeleton height="h-48" />}>
             <ExpenseHeatmap
-              dailyData={dailyData}
+              rows={dailyByCategory}
               dateFrom={dateFrom}
               dateTo={dateTo}
             />

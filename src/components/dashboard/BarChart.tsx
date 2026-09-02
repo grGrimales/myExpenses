@@ -1,12 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { type DailyExpense } from "@/types/expense";
+import { type DailyCategoryExpense } from "@/types/expense";
 import BarChartClient from "./BarChartClient";
 
 interface BarChartProps {
-  dailyData: DailyExpense[];
+  rows: DailyCategoryExpense[];
 }
 
-export default function BarChart({ dailyData }: BarChartProps) {
+export default function BarChart({ rows }: BarChartProps) {
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -15,7 +15,7 @@ export default function BarChart({ dailyData }: BarChartProps) {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <BarChartClient dailyData={dailyData} />
+        <BarChartClient rows={rows} />
       </CardContent>
     </Card>
   );

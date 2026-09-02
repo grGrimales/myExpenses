@@ -72,6 +72,11 @@
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
+  /* Las dos series del gráfico de inversiones: capital puesto y valor de la
+     cartera. Son identidad, no magnitud, así que son dos tonos opuestos y no
+     una rampa. Validadas contra la superficie de cada modo. */
+  --series-invested: #eb6834;
+  --series-value: #2a78d6;
   --radius: 0.625rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
@@ -107,6 +112,9 @@
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
+  /* Escalones propios del modo oscuro, no un volteo del claro. */
+  --series-invested: #d95926;
+  --series-value: #3987e5;
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(0.488 0.243 264.376);

@@ -1,8 +1,9 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatCurrency } from "@/lib/utils/format";
-import { type DailyExpense } from "@/types/expense";
+import { buildCategorySeries, buildDailyBreakdown } from "@/lib/daily-categories";
+import { useMoney } from "@/lib/currency-context";
+import { type DailyCategoryExpense } from "@/types/expense";
 import {
   eachDayOfInterval,
   endOfWeek,
@@ -10,23 +11,31 @@ import {
   startOfWeek,
 } from "date-fns";
 import { es } from "date-fns/locale";
+import { useMemo } from "react";
 
 interface ExpenseHeatmapProps {
-  dailyData: DailyExpense[];
+  rows: DailyCategoryExpense[];
   dateFrom: Date;
   dateTo: Date;
 }
 
 const WEEK_DAYS = ["L", "M", "X", "J", "V", "S", "D"];
 
-const intensityClasses = [
-  "bg-muted/50",
-  "bg-red-200 dark:bg-red-900/50",
-  "bg-red-300 dark:bg-red-800/60",
-  "bg-red-400 dark:bg-red-700/70",
-  "bg-red-500 dark:bg-red-600/80",
-  "bg-red-600 dark:bg-red-500",
-];
+/**
+ * Codificación compuesta: el tono dice qué categoría dominó el día y la
+ * intensidad cuánto se gastó. Los pasos no bajan de 40% para que el tono siga
+ * siendo reconocible en una celda de 14px; por debajo todas las categorías se
+ * confundirían en un mismo pastel.
+ */
+const INTENSITY_MIX = [0, 40, 55, 70, 85, 100];
+
+/** Un día sin gastos usa --muted, fuera de la familia de cualquier categoría. */
+const EMPTY_FILL = "var(--muted)";
+
+function fillFor(color: string, intensity: number): string {
+  if (intensity === 0) return EMPTY_FILL;
+  return `color-mix(in oklab, ${color} ${INTENSITY_MIX[intensity]}%, var(--card))`;
+}
 
 function getIntensity(value: number, max: number): number {
   if (value === 0 || max === 0) return 0;
@@ -39,12 +48,26 @@ function getIntensity(value: number, max: number): number {
 }
 
 export default function ExpenseHeatmap({
-  dailyData,
+  rows,
   dateFrom,
   dateTo,
 }: ExpenseHeatmapProps) {
-  const dataMap = new Map(dailyData.map((d) => [d.date, d.total]));
-  const maxValue = Math.max(...dailyData.map((d) => d.total), 0);
+  const money = useMoney();
+  const series = useMemo(() => buildCategorySeries(rows), [rows]);
+  const daily = useMemo(() => buildDailyBreakdown(rows, series), [rows, series]);
+
+  const dataMap = useMemo(
+    () => new Map(daily.map((d) => [d.date, d])),
+    [daily]
+  );
+  const colorById = useMemo(
+    () => new Map(series.map((s) => [s.id, s])),
+    [series]
+  );
+  const maxValue = useMemo(
+    () => Math.max(...daily.map((d) => d.total), 0),
+    [daily]
+  );
 
   const rangeStart = startOfWeek(dateFrom, { weekStartsOn: 1 });
   const rangeEnd = endOfWeek(dateTo, { weekStartsOn: 1 });
@@ -63,7 +86,7 @@ export default function ExpenseHeatmap({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {dailyData.length === 0 ? (
+        {rows.length === 0 ? (
           <div className="flex h-32 items-center justify-center text-sm text-muted-foreground">
             No hay gastos en este período
           </div>
@@ -106,22 +129,35 @@ export default function ExpenseHeatmap({
                       </div>
                       {week.map((day, di) => {
                         const dateStr = format(day, "yyyy-MM-dd");
-                        const amount = dataMap.get(dateStr) ?? 0;
                         const isInRange = day >= dateFrom && day <= dateTo;
-                        const intensity = isInRange
-                          ? getIntensity(amount, maxValue)
-                          : 0;
+                        const entry = isInRange
+                          ? dataMap.get(dateStr)
+                          : undefined;
+                        const amount = entry?.total ?? 0;
+                        const dominant = entry?.dominantId
+                          ? colorById.get(entry.dominantId)
+                          : undefined;
+                        const intensity = getIntensity(amount, maxValue);
                         const label = isInRange
                           ? `${format(day, "EEEE d MMM yyyy", { locale: es })}: ${
-                              amount > 0 ? formatCurrency(amount) : "Sin gastos"
+                              amount > 0
+                                ? `${money.format(amount)}${
+                                    dominant ? ` · ${dominant.name}` : ""
+                                  }`
+                                : "Sin gastos"
                             }`
                           : "";
                         return (
                           <div
                             key={di}
-                            className={`h-[14px] w-[14px] rounded-sm ${intensityClasses[intensity]} ${
+                            className={`h-[14px] w-[14px] rounded-sm ${
                               !isInRange ? "opacity-20" : ""
                             }`}
+                            style={{
+                              backgroundColor: dominant
+                                ? fillFor(dominant.color, intensity)
+                                : EMPTY_FILL,
+                            }}
                             title={label}
                           />
                         );
@@ -132,12 +168,43 @@ export default function ExpenseHeatmap({
               </div>
             </div>
 
-            <div className="mt-3 flex items-center gap-1.5 text-[10px] text-muted-foreground">
-              <span>Menos</span>
-              {intensityClasses.map((cls, i) => (
-                <div key={i} className={`h-[14px] w-[14px] rounded-sm ${cls}`} />
-              ))}
-              <span>Más</span>
+            {/* Dos canales, dos leyendas: sin decir qué significa cada uno el
+                mapa parecería un mosaico decorativo. */}
+            <div className="mt-4 space-y-2">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                <span className="text-[10px] text-muted-foreground">
+                  Color: categoría con más gasto del día
+                </span>
+                {series.map((s) => (
+                  <span
+                    key={s.id}
+                    className="flex items-center gap-1.5 text-[10px] text-muted-foreground"
+                  >
+                    <span
+                      className="h-[10px] w-[10px] rounded-sm"
+                      style={{ backgroundColor: s.color }}
+                    />
+                    {s.name}
+                  </span>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                <span>Intensidad: menos</span>
+                {INTENSITY_MIX.map((mix, i) => (
+                  <span
+                    key={i}
+                    className="h-[14px] w-[14px] rounded-sm"
+                    style={{
+                      backgroundColor:
+                        i === 0
+                          ? EMPTY_FILL
+                          : `color-mix(in oklab, var(--foreground) ${mix}%, var(--card))`,
+                    }}
+                  />
+                ))}
+                <span>más</span>
+              </div>
             </div>
           </div>
         )}

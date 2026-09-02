@@ -1,7 +1,7 @@
 "use server";
 
 import { auth } from "@/auth";
-import { expenseRepository } from "@/db/repositories";
+import { categoryRepository, expenseRepository } from "@/db/repositories";
 import { revalidatePath } from "next/cache";
 import {
   createExpenseSchema,
@@ -17,8 +17,22 @@ import {
   type ExpenseSummary,
   type CategoryExpense,
   type MonthlyTrend,
-  type DailyExpense,
+  type DailyCategoryExpense,
 } from "@/types/expense";
+
+/**
+ * El categoryId lo elige el cliente, así que hay que confirmar que la categoría
+ * sea suya: sin esto, un uuid ajeno bastaría para colgar un gasto propio de la
+ * categoría de otro y ver su nombre y color en los informes.
+ */
+async function ownsCategory(
+  categoryId: string | undefined,
+  userId: string
+): Promise<boolean> {
+  if (!categoryId) return true;
+  const category = await categoryRepository.findCategoryById(categoryId, userId);
+  return Boolean(category);
+}
 
 export async function createExpenseAction(
   data: CreateExpenseInput
@@ -29,6 +43,9 @@ export async function createExpenseAction(
   const validated = createExpenseSchema.safeParse(data);
   if (!validated.success)
     return { success: false, error: validated.error.issues[0].message };
+
+  if (!(await ownsCategory(validated.data.categoryId, session.user.id)))
+    return { success: false, error: "Categoría no encontrada" };
 
   try {
     const expense = await expenseRepository.createExpense({
@@ -56,6 +73,9 @@ export async function updateExpenseAction(
   const validated = updateExpenseSchema.safeParse(data);
   if (!validated.success)
     return { success: false, error: validated.error.issues[0].message };
+
+  if (!(await ownsCategory(validated.data.categoryId, session.user.id)))
+    return { success: false, error: "Categoría no encontrada" };
 
   try {
     const { amount, ...rest } = validated.data;
@@ -219,15 +239,15 @@ export async function getCategoryExpensesAction(
   }
 }
 
-export async function getDailyExpensesAction(
+export async function getDailyExpensesByCategoryAction(
   dateFrom: Date,
   dateTo: Date
-): Promise<ActionResult<DailyExpense[]>> {
+): Promise<ActionResult<DailyCategoryExpense[]>> {
   const session = await auth();
   if (!session?.user?.id) return { success: false, error: "No autenticado" };
 
   try {
-    const data = await expenseRepository.getDailyExpenses(
+    const data = await expenseRepository.getDailyExpensesByCategory(
       session.user.id,
       dateFrom,
       dateTo
@@ -237,7 +257,9 @@ export async function getDailyExpensesAction(
     return {
       success: false,
       error:
-        error instanceof Error ? error.message : "Error al obtener gastos diarios",
+        error instanceof Error
+          ? error.message
+          : "Error al obtener gastos diarios por categoría",
     };
   }
 }
