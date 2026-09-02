@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { BarChart2, CreditCard, Home, Tag, User } from "lucide-react";
+import { BarChart2, CreditCard, Home, Tag, TrendingUp, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -9,6 +9,7 @@ const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: Home },
   { name: "Gastos", href: "/gastos", icon: CreditCard },
   { name: "Categorías", href: "/categorias", icon: Tag },
+  { name: "Inversiones", href: "/inversiones", icon: TrendingUp },
   { name: "Informes", href: "/informes", icon: BarChart2 },
   { name: "Perfil", href: "/perfil", icon: User },
 ];
