@@ -28,10 +28,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             })
             .returning();
 
-          const { seedDefaultCategoriesAction } = await import(
-            "./actions/seed"
+          const { seedDefaultCategories } = await import(
+            "./db/seed-default-categories"
           );
-          await seedDefaultCategoriesAction(newUser.id);
+          await seedDefaultCategories(newUser.id);
         }
 
         return true;
@@ -53,6 +53,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         if (dbUser) {
           session.user.id = dbUser.id;
+          session.user.currency = dbUser.currency;
         }
       }
       return session;
