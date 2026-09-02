@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import MobileNav from "@/components/layout/MobileNav";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
+import { CurrencyProvider } from "@/lib/currency-context";
 import { redirect } from "next/navigation";
 
 export default async function DashboardLayout({
@@ -15,18 +16,24 @@ export default async function DashboardLayout({
     redirect("/login");
   }
 
+  // El ?? no es decorativo: una sesión sin moneda dejaría el contexto en
+  // undefined, e Intl.NumberFormat lanza excepción con currency undefined.
+  const currency = session.user.currency ?? "CLP";
+
   return (
-    <div className="flex min-h-screen flex-col">
-      <Navbar />
-      <div className="flex flex-1 overflow-hidden">
-        <Sidebar />
-        <main className="flex-1 overflow-y-auto pb-16 md:pb-0">
-          <div className="container mx-auto px-4 py-8 max-w-7xl">
-            {children}
-          </div>
-        </main>
+    <CurrencyProvider currency={currency}>
+      <div className="flex min-h-screen flex-col">
+        <Navbar />
+        <div className="flex flex-1 overflow-hidden">
+          <Sidebar />
+          <main className="flex-1 overflow-y-auto pb-16 md:pb-0">
+            <div className="container mx-auto px-4 py-8 max-w-7xl">
+              {children}
+            </div>
+          </main>
+        </div>
+        <MobileNav />
       </div>
-      <MobileNav />
-    </div>
+    </CurrencyProvider>
   );
 }

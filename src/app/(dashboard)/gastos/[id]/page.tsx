@@ -3,6 +3,7 @@ import { getExpenseByIdAction } from "@/actions/expenses";
 import ExpenseDetailActions from "@/components/expenses/ExpenseDetailActions";
 import { Badge } from "@/components/ui/badge";
 import { CATEGORY_ICONS } from "@/lib/category-icons";
+import { getUserCurrency } from "@/lib/user-currency";
 import { formatCurrency, formatDate } from "@/lib/utils/format";
 import { ArrowLeft, Tag } from "lucide-react";
 import Link from "next/link";
@@ -15,9 +16,10 @@ export default async function ExpenseDetailPage({
 }) {
   const { id } = await params;
 
-  const [expenseResult, categoriesResult] = await Promise.all([
+  const [expenseResult, categoriesResult, currency] = await Promise.all([
     getExpenseByIdAction(id),
     getCategoriesAction(),
+    getUserCurrency(),
   ]);
 
   if (!expenseResult.success) notFound();
@@ -50,7 +52,7 @@ export default async function ExpenseDetailPage({
             }`}
           >
             {isIncome ? "+" : "-"}
-            {formatCurrency(amount)}
+            {formatCurrency(amount, currency)}
           </p>
           <Badge
             className="mt-2"

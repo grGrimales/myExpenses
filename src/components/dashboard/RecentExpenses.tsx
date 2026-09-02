@@ -2,6 +2,7 @@ import { getCategoriesAction } from "@/actions/categories";
 import { getExpensesAction } from "@/actions/expenses";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getUserCurrency } from "@/lib/user-currency";
 import { formatCurrency, formatDate } from "@/lib/utils/format";
 import Link from "next/link";
 
@@ -14,9 +15,10 @@ export default async function RecentExpenses({
   dateFrom,
   dateTo,
 }: RecentExpensesProps) {
-  const [expensesResult, categoriesResult] = await Promise.all([
+  const [expensesResult, categoriesResult, currency] = await Promise.all([
     getExpensesAction({ dateFrom, dateTo }, { page: 1, pageSize: 5 }),
     getCategoriesAction(),
+    getUserCurrency(),
   ]);
 
   const expenses = expensesResult.success ? expensesResult.data.expenses : [];
@@ -85,7 +87,7 @@ export default async function RecentExpenses({
                     }`}
                   >
                     {isIncome ? "+" : "-"}
-                    {formatCurrency(Number(expense.amount))}
+                    {formatCurrency(Number(expense.amount), currency)}
                   </span>
                 </div>
               );

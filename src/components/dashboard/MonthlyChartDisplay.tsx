@@ -1,6 +1,6 @@
 "use client";
 
-import { formatCurrency } from "@/lib/utils/format";
+import { useMoney } from "@/lib/currency-context";
 import { type MonthlyTrend } from "@/types/expense";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
@@ -20,6 +20,8 @@ interface MonthlyChartDisplayProps {
 }
 
 export default function MonthlyChartDisplay({ data }: MonthlyChartDisplayProps) {
+  const money = useMoney();
+
   if (data.length === 0) {
     return (
       <div className="flex h-[300px] items-center justify-center text-sm text-muted-foreground">
@@ -61,17 +63,12 @@ export default function MonthlyChartDisplay({ data }: MonthlyChartDisplayProps) 
           tick={{ fontSize: 12 }}
           tickLine={false}
           axisLine={false}
-          tickFormatter={(v: number) =>
-            new Intl.NumberFormat("es-CL", {
-              notation: "compact",
-              maximumFractionDigits: 1,
-            }).format(v)
-          }
+          tickFormatter={(v: number) => money.compact(v)}
           width={55}
         />
         <Tooltip
           formatter={(value, name) => [
-            typeof value === "number" ? formatCurrency(value) : String(value),
+            typeof value === "number" ? money.format(value) : String(value),
             name,
           ]}
           contentStyle={{

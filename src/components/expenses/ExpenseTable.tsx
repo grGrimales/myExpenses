@@ -12,7 +12,8 @@ import {
 } from "@/components/ui/table";
 import { type Category } from "@/db/schema/categories";
 import { type Expense } from "@/db/schema/expenses";
-import { formatCurrency, formatDate } from "@/lib/utils/format";
+import { useMoney } from "@/lib/currency-context";
+import { formatDate } from "@/lib/utils/format";
 import { Pencil, Trash2 } from "lucide-react";
 
 interface ExpenseTableProps {
@@ -28,6 +29,8 @@ export default function ExpenseTable({
   onEdit,
   onDelete,
 }: ExpenseTableProps) {
+  const money = useMoney();
+
   if (expenses.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center rounded-xl border border-dashed py-16 text-center">
@@ -99,7 +102,7 @@ export default function ExpenseTable({
                 <TableCell className="text-right font-medium">
                   <span className={isIncome ? "text-green-600" : "text-red-600"}>
                     {isIncome ? "+" : "-"}
-                    {formatCurrency(amount)}
+                    {money.format(amount)}
                   </span>
                 </TableCell>
 

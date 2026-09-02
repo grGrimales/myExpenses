@@ -1,6 +1,6 @@
 "use client";
 
-import { formatCurrency } from "@/lib/utils/format";
+import { useMoney } from "@/lib/currency-context";
 import {
   Cell,
   Legend,
@@ -23,6 +23,8 @@ interface CategoryPieChartDisplayProps {
 export default function CategoryPieChartDisplay({
   data,
 }: CategoryPieChartDisplayProps) {
+  const money = useMoney();
+
   if (data.length === 0) {
     return (
       <div className="flex h-[300px] items-center justify-center text-sm text-muted-foreground">
@@ -50,7 +52,7 @@ export default function CategoryPieChartDisplay({
         </Pie>
         <Tooltip
           formatter={(value) => [
-            typeof value === "number" ? formatCurrency(value) : String(value),
+            typeof value === "number" ? money.format(value) : String(value),
             "Total",
           ]}
           contentStyle={{

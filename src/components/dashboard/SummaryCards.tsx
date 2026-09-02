@@ -1,5 +1,6 @@
 import { getExpenseSummaryAction } from "@/actions/expenses";
 import { getPreviousPeriod } from "@/lib/date-range";
+import { getUserCurrency } from "@/lib/user-currency";
 import { formatCurrency } from "@/lib/utils/format";
 import { ArrowDownLeft, ArrowUpRight, Wallet } from "lucide-react";
 import SummaryCard from "./SummaryCard";
@@ -27,9 +28,10 @@ function trendInfo(
 export default async function SummaryCards({ dateFrom, dateTo }: SummaryCardsProps) {
   const { prevFrom, prevTo } = getPreviousPeriod(dateFrom, dateTo);
 
-  const [current, prev] = await Promise.all([
+  const [current, prev, currency] = await Promise.all([
     getExpenseSummaryAction(dateFrom, dateTo),
     getExpenseSummaryAction(prevFrom, prevTo),
+    getUserCurrency(),
   ]);
 
   const cur = current.success ? current.data : { income: 0, expense: 0, balance: 0 };
@@ -43,7 +45,7 @@ export default async function SummaryCards({ dateFrom, dateTo }: SummaryCardsPro
     <div className="grid gap-4 sm:grid-cols-3">
       <SummaryCard
         title="Total Gastos"
-        value={formatCurrency(cur.expense)}
+        value={formatCurrency(cur.expense, currency)}
         icon={<ArrowDownLeft className="h-4 w-4" />}
         iconColor="text-red-600"
         trend={expenseTrend.trend}
@@ -51,7 +53,7 @@ export default async function SummaryCards({ dateFrom, dateTo }: SummaryCardsPro
       />
       <SummaryCard
         title="Total Ingresos"
-        value={formatCurrency(cur.income)}
+        value={formatCurrency(cur.income, currency)}
         icon={<ArrowUpRight className="h-4 w-4" />}
         iconColor="text-green-600"
         trend={incomeTrend.trend}
@@ -59,7 +61,7 @@ export default async function SummaryCards({ dateFrom, dateTo }: SummaryCardsPro
       />
       <SummaryCard
         title="Balance"
-        value={formatCurrency(cur.balance)}
+        value={formatCurrency(cur.balance, currency)}
         icon={<Wallet className="h-4 w-4" />}
         iconColor="text-primary"
         trend={balanceTrend.trend}

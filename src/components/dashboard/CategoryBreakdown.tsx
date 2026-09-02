@@ -14,7 +14,7 @@ import {
 } from "@/hooks/useCategorySelection";
 import { CATEGORY_ICONS } from "@/lib/category-icons";
 import { cn } from "@/lib/utils";
-import { formatCurrency } from "@/lib/utils/format";
+import { useMoney } from "@/lib/currency-context";
 import { type CategoryExpense } from "@/types/expense";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -38,6 +38,7 @@ export default function CategoryBreakdown({
   dateFrom,
   dateTo,
 }: CategoryBreakdownProps) {
+  const money = useMoney();
   const { selection, setSelection } = useCategorySelection();
 
   const [excludedIds, setExcludedIds] = useState<Set<string>>(new Set());
@@ -190,7 +191,7 @@ export default function CategoryBreakdown({
                 Total seleccionado
               </p>
               <p className="mt-0.5 text-2xl font-bold tabular-nums">
-                {formatCurrency(selectedTotal)}
+                {money.format(selectedTotal)}
               </p>
               <p className="mt-1 text-xs text-muted-foreground">
                 {selectedVisibleCount} de {allKeys.length} categoría
@@ -199,7 +200,7 @@ export default function CategoryBreakdown({
                   ` · ${excludedCount} gasto${
                     excludedCount !== 1 ? "s" : ""
                   } excluido${excludedCount !== 1 ? "s" : ""}`}
-                {isFiltered && ` · total del período ${formatCurrency(total)}`}
+                {isFiltered && ` · total del período ${money.format(total)}`}
               </p>
             </div>
 
@@ -303,8 +304,8 @@ export default function CategoryBreakdown({
                         </span>
                         <span className="font-semibold tabular-nums">
                           {off && isSelected
-                            ? formatCurrency(item.total - off.amount)
-                            : formatCurrency(item.total)}
+                            ? money.format(item.total - off.amount)
+                            : money.format(item.total)}
                         </span>
                       </div>
                     </div>
@@ -361,7 +362,7 @@ export default function CategoryBreakdown({
                                     "text-muted-foreground line-through"
                                 )}
                               >
-                                {formatCurrency(Number(expense.amount) || 0)}
+                                {money.format(Number(expense.amount) || 0)}
                               </span>
                             </li>
                           );

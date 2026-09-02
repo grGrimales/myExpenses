@@ -1,6 +1,6 @@
 "use client";
 
-import { formatCurrency } from "@/lib/utils/format";
+import { useMoney } from "@/lib/currency-context";
 import {
   Bar,
   BarChart,
@@ -24,6 +24,7 @@ interface CategoryBarChartDisplayProps {
 export default function CategoryBarChartDisplay({
   data,
 }: CategoryBarChartDisplayProps) {
+  const money = useMoney();
   const height = Math.max(data.length * 36, 80);
 
   return (
@@ -45,7 +46,7 @@ export default function CategoryBarChartDisplay({
         <Tooltip
           cursor={{ fill: "var(--muted)" }}
           formatter={(value) => [
-            typeof value === "number" ? formatCurrency(value) : String(value),
+            typeof value === "number" ? money.format(value) : String(value),
             "Total",
           ]}
           contentStyle={{
