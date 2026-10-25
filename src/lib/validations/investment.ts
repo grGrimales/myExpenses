@@ -5,7 +5,7 @@ export const createInvestmentAccountSchema = z.object({
     .string()
     .min(2, "La institución debe tener al menos 2 caracteres")
     .max(60, "La institución no puede exceder los 60 caracteres"),
-  kind: z.enum(["bank", "platform"]),
+  kind: z.enum(["bank", "platform", "consortium"]),
   name: z
     .string()
     .min(2, "El nombre debe tener al menos 2 caracteres")

@@ -11,10 +11,16 @@ import {
 } from "drizzle-orm/pg-core";
 import { users } from "./users";
 
-/** Un banco y una plataforma se consultan distinto; el tipo permite agruparlas. */
+/**
+ * Un banco y una plataforma se consultan distinto; el tipo permite agruparlas.
+ * Un consorcio no rinde: se paga en cuotas hasta recibir la carta de crédito, y
+ * lo que no vuelve (adhesión, tasa de administración, seguro) se anota como
+ * costo, así que su "ganancia" es lo que cuesta.
+ */
 export const investmentAccountKindEnum = pgEnum("investment_account_kind", [
   "bank",
   "platform",
+  "consortium",
 ]);
 
 /**

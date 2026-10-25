@@ -1,0 +1,1 @@
+ALTER TYPE "public"."investment_account_kind" ADD VALUE 'consortium';

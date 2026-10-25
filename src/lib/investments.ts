@@ -7,7 +7,7 @@ import {
   type TimelineEntry,
   type TimelineKind,
 } from "@/types/investment";
-import { endOfMonth, format, startOfMonth } from "date-fns";
+import { format, startOfMonth } from "date-fns";
 
 /** Aporte y retiro mueven capital propio; interés y costo los genera la cuenta. */
 const CAPITAL_IN = "contribution";
@@ -183,9 +183,25 @@ export function computePortfolioTotals(
 }
 
 /**
- * Serie mensual para el gráfico: capital puesto contra valor de la cartera al
- * cierre de cada mes. La distancia entre las dos series es la ganancia, así que
- * las dos comparten un solo eje y no hace falta un segundo.
+ * Cierre de un mes en el formato en que se guardan los registros: medianoche
+ * UTC del último día. Con endOfMonth en hora local, al oeste de Greenwich el
+ * cierre de enero caía ya en el 1 de febrero UTC y un saldo anotado ese día se
+ * contaba como rendimiento de enero.
+ */
+function utcMonthClose(year: number, month: number): Date {
+  return new Date(Date.UTC(year, month + 1, 0));
+}
+
+/**
+ * Serie mensual para los gráficos: capital puesto contra valor de la cartera al
+ * cierre de cada mes, y lo que rindió cada mes.
+ *
+ * El rendimiento del mes es la diferencia entre la ganancia de un cierre y la
+ * del anterior. Un aporte sube valor y capital por igual, así que no aparece
+ * como rendimiento; solo queda lo que la cuenta generó, o el cambio de cotización
+ * si está en otra moneda. El primer mes de la ventana se compara contra el
+ * cierre previo real, no contra cero, para no presentar como rendimiento de ese
+ * mes todo lo acumulado antes.
  */
 export function buildPortfolioSeries(
   ledgers: AccountLedger[],
@@ -202,20 +218,55 @@ export function buildPortfolioSeries(
   const window = startOfMonth(
     new Date(now.getFullYear(), now.getMonth() - (months - 1), 1)
   );
-  const start = earliest > window ? startOfMonth(earliest) : window;
+  const earliestMonth = new Date(
+    earliest.getUTCFullYear(),
+    earliest.getUTCMonth(),
+    1
+  );
+  const start = earliestMonth > window ? earliestMonth : window;
+
+  const closeOf = (d: Date) => utcMonthClose(d.getFullYear(), d.getMonth());
+
+  let previous = ledgers.map((l) =>
+    computeAccountSnapshot(
+      l,
+      utcMonthClose(start.getFullYear(), start.getMonth() - 1)
+    )
+  );
 
   const points: PortfolioPoint[] = [];
   const cursor = new Date(start);
 
   while (cursor <= now) {
-    const asOf = endOfMonth(cursor);
-    const snapshots = ledgers.map((l) => computeAccountSnapshot(l, asOf));
+    const snapshots = ledgers.map((l) =>
+      computeAccountSnapshot(l, closeOf(cursor))
+    );
     const totals = computePortfolioTotals(snapshots);
+    const previousTotals = computePortfolioTotals(previous);
+    const previousGain = previousTotals.gain;
+    const monthGain = totals.gain - previousGain;
+    // Valor al cierre menos lo rendido = valor anterior más aportes netos.
+    const base = totals.currentValue - monthGain;
+
     points.push({
       month: format(cursor, "yyyy-MM"),
       invested: totals.invested,
       value: totals.currentValue,
+      monthGain,
+      monthReturnPct: base > 0 ? monthGain / base : null,
+      netContribution: totals.invested - previousTotals.invested,
+      byAccount: snapshots
+        .map((s, i) => ({
+          accountId: s.account.id,
+          name: s.account.name,
+          color: s.account.color,
+          gain: s.gain - previous[i].gain,
+        }))
+        .filter((a) => Math.abs(a.gain) >= 0.005)
+        .sort((a, b) => b.gain - a.gain),
     });
+
+    previous = snapshots;
     cursor.setMonth(cursor.getMonth() + 1);
   }
 

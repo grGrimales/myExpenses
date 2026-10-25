@@ -36,7 +36,7 @@ const formSchema = z.object({
     .string()
     .min(2, "La institución debe tener al menos 2 caracteres")
     .max(60),
-  kind: z.enum(["bank", "platform"]),
+  kind: z.enum(["bank", "platform", "consortium"]),
   name: z.string().min(2, "El nombre debe tener al menos 2 caracteres").max(60),
   currency: z.string().regex(/^[A-Za-z]{3}$/, "Selecciona una moneda"),
   color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Color hex inválido"),
@@ -189,6 +189,7 @@ export default function AccountDialog({
                     <SelectContent>
                       <SelectItem value="bank">Banco</SelectItem>
                       <SelectItem value="platform">Plataforma</SelectItem>
+                      <SelectItem value="consortium">Consorcio</SelectItem>
                     </SelectContent>
                   </Select>
                 )}

@@ -20,9 +20,14 @@ export default async function InversionesPage() {
 
   // El cálculo vive en el servidor: el cliente recibe números ya resueltos y no
   // tiene que rehacer el historial completo para pintar una tarjeta.
-  const snapshots = ledgers.map((ledger) => computeAccountSnapshot(ledger));
+  // Un consorcio se paga para comprar un bien, no para que rinda: sus tasas
+  // mezcladas con la cartera se leerían como una pérdida de inversión.
+  const investing = ledgers.filter((l) => l.account.kind !== "consortium");
+  const consortia = ledgers.filter((l) => l.account.kind === "consortium");
+
+  const snapshots = investing.map((ledger) => computeAccountSnapshot(ledger));
   const totals = computePortfolioTotals(snapshots);
-  const series = buildPortfolioSeries(ledgers);
+  const series = buildPortfolioSeries(investing);
 
   const timelines: Record<string, TimelineEntry[]> = Object.fromEntries(
     ledgers.map((ledger) => [ledger.account.id, buildAccountTimeline(ledger)])
@@ -31,6 +36,7 @@ export default async function InversionesPage() {
   return (
     <InvestmentsClient
       snapshots={snapshots}
+      consortia={consortia.map((ledger) => computeAccountSnapshot(ledger))}
       totals={totals}
       series={series}
       timelines={timelines}

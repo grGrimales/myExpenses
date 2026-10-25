@@ -78,11 +78,37 @@ export interface TimelineEntry {
   gainAfter: number;
 }
 
+/** Lo que una cuenta ganó o perdió en un mes, en moneda del usuario. */
+export interface AccountMonthGain {
+  accountId: string;
+  name: string;
+  color: string;
+  gain: number;
+}
+
 /** Un punto del gráfico: cuánto se había puesto y cuánto valía ese mes. */
 export interface PortfolioPoint {
   month: string;
   invested: number;
   value: number;
+  /**
+   * Lo que la cartera rindió en el mes: la ganancia al cierre menos la del
+   * cierre anterior. Los aportes y retiros no cuentan, porque mueven valor y
+   * capital por igual.
+   */
+  monthGain: number;
+  /**
+   * monthGain sobre lo que había para rendir: el valor al cierre anterior más
+   * los aportes netos del mes. null si no había nada.
+   */
+  monthReturnPct: number | null;
+  /**
+   * Aportes menos retiros del mes, al cambio de cada día. Negativo cuando salió
+   * plata, como un retiro para pagar algo.
+   */
+  netContribution: number;
+  /** monthGain abierto por cuenta, solo las que se movieron. */
+  byAccount: AccountMonthGain[];
 }
 
 export type {

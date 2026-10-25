@@ -51,11 +51,15 @@ import { useState } from "react";
 import { toast } from "sonner";
 import AccountDialog from "./AccountDialog";
 import AccountHistoryDialog from "./AccountHistoryDialog";
+import MonthlyGainChart from "./MonthlyGainChart";
 import PortfolioChart from "./PortfolioChart";
 import RecordDialog from "./RecordDialog";
 
 interface InvestmentsClientProps {
+  /** Cuentas que rinden: son las que entran en totales y gráficos. */
   snapshots: AccountSnapshot[];
+  /** Consorcios: plata comprometida para un bien, aparte de lo que rinde. */
+  consortia: AccountSnapshot[];
   totals: PortfolioTotals;
   series: PortfolioPoint[];
   /** Historial ya calculado por cuenta, indexado por id de cuenta. */
@@ -72,6 +76,7 @@ function formatPct(value: number | null): string {
 
 export default function InvestmentsClient({
   snapshots,
+  consortia,
   totals,
   series,
   timelines,
@@ -84,7 +89,7 @@ export default function InvestmentsClient({
   const [deleting, setDeleting] = useState<InvestmentAccount | undefined>();
   const [historyOf, setHistoryOf] = useState<InvestmentAccount | undefined>();
 
-  const accounts = snapshots.map((s) => s.account);
+  const accounts = [...snapshots, ...consortia].map((s) => s.account);
   const gainIsPositive = totals.gain >= 0;
 
   const stale = snapshots.filter(
@@ -253,6 +258,23 @@ export default function InvestmentsClient({
             </Card>
           )}
 
+          {series.length >= 1 && (
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base font-semibold">
+                  Rendimiento por mes
+                </CardTitle>
+                <p className="text-xs text-muted-foreground">
+                  Lo que generaron tus inversiones cada mes, sin contar aportes
+                  ni retiros
+                </p>
+              </CardHeader>
+              <CardContent>
+                <MonthlyGainChart series={series} />
+              </CardContent>
+            </Card>
+          )}
+
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-base font-semibold">
@@ -385,6 +407,103 @@ export default function InvestmentsClient({
               </div>
             </CardContent>
           </Card>
+
+          {consortia.length > 0 && (
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base font-semibold">
+                  Consorcios
+                </CardTitle>
+                <p className="text-xs text-muted-foreground">
+                  No entran en los totales ni en el rendimiento: son cuotas para
+                  un bien, y sus tasas y seguro son costo, no pérdida de inversión
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Consorcio</TableHead>
+                        <TableHead className="text-right">Pagado</TableHead>
+                        <TableHead className="text-right">
+                          Tasas y seguro
+                        </TableHead>
+                        <TableHead className="text-right">
+                          Abonado al bien
+                        </TableHead>
+                        <TableHead />
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {consortia.map((s) => (
+                        <TableRow key={s.account.id}>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <span
+                                className="h-2.5 w-2.5 shrink-0 rounded-sm"
+                                style={{ backgroundColor: s.account.color }}
+                              />
+                              <div className="min-w-0">
+                                <p className="truncate font-medium">
+                                  {s.account.name}
+                                </p>
+                                <p className="truncate text-xs text-muted-foreground">
+                                  {s.account.institution} · {s.account.currency}
+                                </p>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right tabular-nums">
+                            {money.format(s.invested)}
+                          </TableCell>
+                          {/* Lo que la cuenta "perdió" es exactamente lo que
+                              se fue en costos: aporte menos lo que quedó. */}
+                          <TableCell className="text-right tabular-nums text-muted-foreground">
+                            {money.format(Math.max(0, -s.gain))}
+                          </TableCell>
+                          <TableCell className="text-right tabular-nums">
+                            {money.format(s.currentValue)}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                aria-label={`Ver historial de ${s.account.name}`}
+                                onClick={() => setHistoryOf(s.account)}
+                              >
+                                <History className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                aria-label={`Editar ${s.account.name}`}
+                                onClick={() => {
+                                  setEditing(s.account);
+                                  setAccountDialogOpen(true);
+                                }}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                aria-label={`Eliminar ${s.account.name}`}
+                                onClick={() => setDeleting(s.account)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </>
       )}
 
